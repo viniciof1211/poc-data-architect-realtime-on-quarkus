@@ -6,7 +6,7 @@ This repository contains all artifacts needed to spin up the assigned Proof-of-C
 
 ---
 
-## 🚀 Repository Layout
+##  Repository Layout
 
 ```
 poc-data-architect-realtime-on-quarkus/
