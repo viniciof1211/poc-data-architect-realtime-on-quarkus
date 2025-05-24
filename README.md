@@ -42,8 +42,8 @@ poc-data-architect-realtime-on-quarkus/
 1. **Clone the repo**
 
    ```bash
-   git clone https://github.com/yourorg/poc-omura-data-architect.git
-   cd poc-omura-data-architect
+   git clone https://github.com/viniciof1211/poc-data-architect-realtime-on-quarkus.git
+   cd poc-data-architect-realtime-on-quarkus
    ```
 
 2. **Install Kubernetes locally**
