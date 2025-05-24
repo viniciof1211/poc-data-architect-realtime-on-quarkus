@@ -312,29 +312,6 @@ spec:
 
 * **deployment.yaml**, **service.yaml**, **ingress.yaml** remain as before, ensure ports for Kafka Connect (8083) are exposed.
 
-### 🛠️ Updated Local Setup
-
-1. **Build & start services**
-
-   ```bash
-   bash scripts/build-and-run.sh
-   ```
-2. **Create Debezium connector**
-
-   ```bash
-   kubectl apply -f k8s/debezium-connector-postgres.json
-   kubectl apply -f k8s/mongo-sink-connector.json
-   ```
-3. **Verify**
-
-   * PostgreSQL CLI: `kubectl exec -it svc/postgres -n poc -- psql -U omura_user -d omura`
-   * Kafka topics: `kubectl exec -it deploy/kafka -n poc -- kafka-topics --bootstrap-server localhost:9092 --list`
-   * MongoDB shell: `kubectl exec -it deploy/mongodb -n poc -- mongo omura`
-
-All services run under namespace `poc`, and you can connect via `kubectl port-forward` or `docker exec`.
-
-**Repo:** [https://github.com/viniciof1211/poc-data-architect-realtime-on-quarkus](https://github.com/viniciof1211/poc-data-architect-realtime-on-quarkus)
-
 ---
 
 ## 🌿 Branch Strategy & CI/CD
@@ -347,6 +324,49 @@ All commit messages follow [Conventional Commits](https://www.conventionalcommit
 
 ---
 
+## 🛠️ Java & Quarkus Stack Steps
+
+1. **Compile & Native Image**
+
+   ```bash
+   cd src/quarkus
+   mvn clean package -Pnative
+   ```
+2. **Deploy Quarkus on OpenShift**
+
+   ```bash
+   oc apply -f k8s/quarkus-deployment.yaml
+   ```
+3. **Hot-reload during dev**
+
+   ```bash
+   mvn quarkus:dev
+   ```
+4. **Configure Camel Routes**
+
+   * Place `camel-context.xml` in `src/camel/`
+   * Apply via:
+
+     ```bash
+     kubectl apply -f k8s/camel-deployment.yaml
+     ```
+5. **NiFi Flow Deployment**
+
+   ```bash
+   iifd import nifi-flow --base-url http://localhost:8080/nifi-api/process-groups/root --flow-file src/nifi/flows.xml
+   ```
+6. **Kafka Connect Transforms**
+
+   * Edit `transforms.route.replacement` in `debezium-connector-postgres.json`
+   * Apply new connector:
+
+     ```bash
+     kubectl delete connector omura-postgres-connector
+     kubectl apply -f k8s/debezium-connector-postgres.json
+     ```
+
+---
+
 Ready to collaborate! Please review and comment in this repo, and watch as we iterate through features, dev tests, and production releases.
 
-_Vinicio S. Flores - Data Architect & Senior Engineer._
+*Vinicio S. Flores - Data Architect & Senior Engineer.*
