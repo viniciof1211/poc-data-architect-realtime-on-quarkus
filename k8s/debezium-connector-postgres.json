@@ -1,0 +1,22 @@
+{
+  "name": "omura-postgres-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "omura_user",
+    "database.password": "${file:/opt/kafka/config/db-password}" ,
+    "database.dbname": "omura",
+    "database.server.name": "omura-pg",
+    "table.include.list": "public.orders,public.customers",
+    "plugin.name": "pgoutput",
+    "transforms": "unwrap,route",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
+    "transforms.route.regex": "(.*)",
+    "transforms.route.replacement": ""$1"",
+    "key.converter.schemas.enable": false,
+    "value.converter.schemas.enable": false,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter"
+  }
+}

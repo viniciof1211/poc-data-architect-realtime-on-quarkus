@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata: { labels: { app: postgres }}
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:14
+        env:
+        - name: POSTGRES_DB
+          value: omura
+        - name: POSTGRES_USER
+          value: omura_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD }
+        ports: [{ containerPort: 5432 }]
