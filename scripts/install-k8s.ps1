@@ -4,6 +4,8 @@ if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
     iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 }
+# Enable Hyper-V PowerShell Module if not already:
+Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V-Tools-All -All -NoRestart
 # Install Minikube or MicroShift
 choco install minikube -y
 minikube start --driver=hyperv
