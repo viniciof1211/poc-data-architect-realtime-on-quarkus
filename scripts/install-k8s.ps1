@@ -4,13 +4,17 @@ if (-not (Get-Command choco -ErrorAction SilentlyContinue)) {
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12
     iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 }
-# Install kubectl and minikube
-choco install kubernetes-cli -y
+# Install Minikube or MicroShift
 choco install minikube -y
-# Configure Minikube to use Docker
-minikube config set driver docker
-# Start Minikube cluster with addons
-minikube start --memory=4096 --cpus=2
-minikube addons enable dashboard
-minikube addons enable metrics-server
-Write-Host 'Kubernetes cluster is up and running on Minikube.'
+minikube start --driver=hyperv
+
+# Install oc CLI for OpenShift
+choco install openshift-cli -y
+oc login https://localhost:6443 --token=$env:OPENSHIFT_TOKEN
+
+# Create namespace and apply manifests
+oc new-project poc
+oc apply -f k8s/namespace.yaml
+oc apply -f k8s/quarkus-deployment.yaml
+oc apply -f k8s/service.yaml
+oc apply -f k8s/ingress.yaml
