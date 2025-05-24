@@ -1,0 +1,41 @@
+# Web framework
+fastapi==0.95.2
+uvicorn[standard]==0.22.0
+
+# Kafka client
+kafka-python==2.0.2
+confluent-kafka==2.1.1
+
+# Database drivers
+psycopg2-binary==2.9.7
+pymongo==4.4.0
+
+# Azure SDKs
+azure-identity==1.13.0
+azure-storage-blob==12.18.1
+azure-data-tables==12.6.0
+azure-keyvault-secrets==4.7.0
+azure-cosmos==4.3.0
+azure-core==1.32.0
+
+# AWS SDK (if needed for multi-cloud)
+boto3==1.26.136
+
+# Data processing
+pandas==2.0.3
+pyarrow==11.0.0
+
+# YAML/config parsing
+PyYAML==6.0
+
+# HTTP requests
+requests==2.31.0
+
+# Logging & monitoring
+structlog==24.2.0
+
+# CLI helpers
+click==8.1.7
+
+# Environment variable parsing
+python-dotenv==1.0.0

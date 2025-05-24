@@ -1,0 +1,8 @@
+piVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: poc
+data:
+  ENV: "prod"
+  LOG_LEVEL: "info"
