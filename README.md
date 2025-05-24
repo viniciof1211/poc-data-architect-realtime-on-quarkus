@@ -2,15 +2,14 @@
 
 # POC OMURA Data Architect
 
-This repository contains all artifacts needed to spin up the assigned Proof-of-Concept (POC) for the OMURA Data Architect solution, including Docker, scripts, and Kubernetes manifests.
+This repository contains all artifacts needed to spin up a Proof-of-Concept (POC) for the OMURA Data Architect solution, including Docker, scripts, and Quarkus / Kubernetes manifests.
 
 ---
 
-##  Repository Layout
+## 🚀 Repository Layout
 
 ```
-poc-data-architect-realtime-on-quarkus/
-│
+poc-omura-data-architect-realtime-on-quarkus/
 ├── README.md                  # This guide
 ├── architecture/              # Diagram exports (draw.io → PNG)
 ├── docs/                      # POC specification and design docs
@@ -42,8 +41,8 @@ poc-data-architect-realtime-on-quarkus/
 1. **Clone the repo**
 
    ```bash
-   git clone https://github.com/viniciof1211/poc-data-architect-realtime-on-quarkus.git
-   cd poc-data-architect-realtime-on-quarkus
+   git clone https://github.com/yourorg/poc-omura-data-architect.git
+   cd poc-omura-data-architect
    ```
 
 2. **Install Kubernetes locally**
@@ -120,75 +119,221 @@ poc-data-architect-realtime-on-quarkus/
 
 ## 🐳 Kubernetes Manifests
 
-All YAMLs under `k8s/`, labeled for `dev` and `prod` environments.
+All YAMLs under `k8s/`, labeled for `dev` and `prod` environments, including Debezium connector setup for real‑time Postgres → MongoDB.
 
 * **namespace.yaml**
 
-  ```yaml
-  apiVersion: v1
-  kind: Namespace
-  metadata:
-    name: poc
-  ```
+```yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: poc
+```
 
 * **configmap.yaml** / **secret.yaml**
-  Define environment variables and secrets.
+  Define environment variables and secrets (e.g., POSTGRES\_URL, MONGO\_URL, KAFKA\_BOOTSTRAP\_SERVERS).
 
-* **deployment.yaml**
-  Pods for ingestion, ODS, API, UI components.
+* **zookeeper-deployment.yaml**
 
-  ```yaml
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    name: app-deployment
-    namespace: poc
-  spec:
-    replicas: 3
-    selector: { matchLabels: { app: poc-app }}
-    template:
-      metadata: { labels: { app: poc-app }}
-      spec:
-        containers:
-        - name: app
-          image: yourrepo/poc-app:latest
-          ports: [ { containerPort: 8080 } ]
-          envFrom:
-            - configMapRef: { name: app-config }
-            - secretRef:    { name: app-secrets }
-  ```
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zookeeper
+  namespace: poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: zookeeper }
+  template:
+    metadata: { labels: { app: zookeeper }}
+    spec:
+      containers:
+      - name: zookeeper
+        image: confluentinc/cp-zookeeper:7.3.0
+        ports: [{ containerPort: 2181 }]
+        env:
+        - name: ZOOKEEPER_CLIENT_PORT
+          value: "2181"
+```
 
-* **service.yaml**
+* **kafka-deployment.yaml**
 
-  ```yaml
-  apiVersion: v1
-  kind: Service
-  metadata: { name: app-service, namespace: poc }
-  spec:
-    type: ClusterIP
-    selector: { app: poc-app }
-    ports: [{ port: 80, targetPort: 8080 }]
-  ```
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka
+  namespace: poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: kafka }
+  template:
+    metadata: { labels: { app: kafka }}
+    spec:
+      containers:
+      - name: kafka
+        image: confluentinc/cp-kafka:7.3.0
+        ports: [{ containerPort: 9092 }]
+        env:
+        - name: KAFKA_ZOOKEEPER_CONNECT
+          value: zookeeper:2181
+        - name: KAFKA_ADVERTISED_LISTENERS
+          value: PLAINTEXT://kafka:9092
+```
 
-* **ingress.yaml**
+* **postgres-deployment.yaml**
 
-  ```yaml
-  apiVersion: networking.k8s.io/v1
-  kind: Ingress
-  metadata:
-    name: app-ingress
-    namespace: poc
-    annotations:
-      nginx.ingress.kubernetes.io/rewrite-target: /
-  spec:
-    rules:
-    - host: poc.example.com
-      http:
-        paths:
-        - path: /
-          pathType: Prefix
-          backend: { service: { name: app-service, port: { number: 80 } }}
-  ```
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: postgres }
+  template:
+    metadata: { labels: { app: postgres }}
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:14
+        env:
+        - name: POSTGRES_DB
+          value: omura
+        - name: POSTGRES_USER
+          value: omura_user
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef: { name: app-secrets, key: POSTGRES_PASSWORD }
+        ports: [{ containerPort: 5432 }]
+```
+
+* **mongodb-deployment.yaml**
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongodb
+  namespace: poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: mongodb }
+  template:
+    metadata: { labels: { app: mongodb }}
+    spec:
+      containers:
+      - name: mongodb
+        image: mongo:6
+        ports: [{ containerPort: 27017 }]
+```
+
+* **kafka-connect-deployment.yaml**
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kafka-connect
+  namespace: poc
+spec:
+  replicas: 1
+  selector:
+    matchLabels: { app: kafka-connect }
+  template:
+    metadata: { labels: { app: kafka-connect }}
+    spec:
+      containers:
+      - name: connect
+        image: debezium/connect:2.1
+        env:
+        - name: BOOTSTRAP_SERVERS
+          value: kafka:9092
+        - name: GROUP_ID
+          value: "1"
+        - name: CONFIG_STORAGE_TOPIC
+          value: "connect-configs"
+        - name: OFFSET_STORAGE_TOPIC
+          value: "connect-offsets"
+        - name: STATUS_STORAGE_TOPIC
+          value: "connect-status"
+        ports: [{ containerPort: 8083 }]
+```
+
+* **debezium-connector-postgres.json**
+
+```json
+{
+  "name": "omura-postgres-connector",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "omura_user",
+    "database.password": "${file:/opt/kafka/config/db-password}" ,
+    "database.dbname": "omura",
+    "database.server.name": "omura-pg",
+    "table.include.list": "public.orders,public.customers",
+    "plugin.name": "pgoutput",
+    "transforms": "unwrap,route",
+    "transforms.unwrap.type": "io.debezium.transforms.ExtractNewRecordState",
+    "transforms.route.type": "org.apache.kafka.connect.transforms.RegexRouter",
+    "transforms.route.regex": "(.*)",
+    "transforms.route.replacement": ""$1"",
+    "key.converter.schemas.enable": false,
+    "value.converter.schemas.enable": false,
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter"
+  }
+}
+```
+
+* **mongo-sink-connector.json**
+
+```json
+{
+  "name": "mongo-sink-connector",
+  "config": {
+    "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
+    "tasks.max": "1",
+    "topics": "omura-pg.public.orders,omura-pg.public.customers",
+    "connection.uri": "mongodb://mongodb:27017/omura",
+    "database": "omura",
+    "collection": "${topic}",
+    "key.converter": "org.apache.kafka.connect.storage.StringConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter"
+  }
+}
+```
+
+* **deployment.yaml**, **service.yaml**, **ingress.yaml** remain as before, ensure ports for Kafka Connect (8083) are exposed.
+
+### 🛠️ Updated Local Setup
+
+1. **Build & start services**
+
+   ```bash
+   bash scripts/build-and-run.sh
+   ```
+2. **Create Debezium connector**
+
+   ```bash
+   kubectl apply -f k8s/debezium-connector-postgres.json
+   kubectl apply -f k8s/mongo-sink-connector.json
+   ```
+3. **Verify**
+
+   * PostgreSQL CLI: `kubectl exec -it svc/postgres -n poc -- psql -U omura_user -d omura`
+   * Kafka topics: `kubectl exec -it deploy/kafka -n poc -- kafka-topics --bootstrap-server localhost:9092 --list`
+   * MongoDB shell: `kubectl exec -it deploy/mongodb -n poc -- mongo omura`
+
+All services run under namespace `poc`, and you can connect via `kubectl port-forward` or `docker exec`.
+
+**Repo:** [https://github.com/viniciof1211/poc-data-architect-realtime-on-quarkus](https://github.com/viniciof1211/poc-data-architect-realtime-on-quarkus)
 
 ---
 
@@ -203,3 +348,5 @@ All commit messages follow [Conventional Commits](https://www.conventionalcommit
 ---
 
 Ready to collaborate! Please review and comment in this repo, and watch as we iterate through features, dev tests, and production releases.
+
+_Vinicio S. Flores - Data Architect & Senior Engineer._
