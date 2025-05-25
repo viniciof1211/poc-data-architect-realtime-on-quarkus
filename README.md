@@ -120,7 +120,7 @@ This is a modern, cloud-native approach to building an ODS that prioritizes real
 ---
 
 ## 🛠️ Local Setup Steps
-Looking at your CDC-to-ODS pipeline, here's the architecture analysis in a nutshell:
+Our CDC-to-ODS pipeline:
 
 ## **Architecture Pattern: Real-time Change Data Capture (CDC)**
 
