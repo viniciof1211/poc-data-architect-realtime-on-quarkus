@@ -6,4 +6,4 @@ COPY ../connectors/debezium-connector-postgres.json /kafka/connectors/
 COPY ../connectors/mongo-sink-connector.json            /kafka/connectors/
 
 # Default entrypoint
-ENTRYPOINT ["/docker-entrypoint.sh", "connect"]
+CMD ["start"]

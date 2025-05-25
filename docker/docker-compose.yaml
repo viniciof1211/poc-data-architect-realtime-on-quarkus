@@ -1,6 +1,6 @@
 # Vinicio S. Flores for OMURA Data Architect and Engineer POC
 # Under MIT License
-# All Ports: Exposed Kafka (9092), Connect (8083), Postgres (5432), Mongo (27017) and our Quarkus app (8080).
+# All Ports: Exposed Kafka (9092), Connect (8083), Postgres (5432), Mongo (27017), Python Health API (8080), Quarkus App (8081)
 
 version: '3.8'
 services:
@@ -11,6 +11,8 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
       - "2181:2181"
+    networks:
+      - omura-network
 
   # 2) Kafka
   kafka:
@@ -24,6 +26,8 @@ services:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - omura-network
 
   # 3) Postgres (for Debezium source)
   postgres:
@@ -32,35 +36,49 @@ services:
       POSTGRES_DB: omura
       POSTGRES_USER: omura_user
       POSTGRES_PASSWORD: omura_pass
+      # Enable logical replication for Debezium
+      POSTGRES_INITDB_ARGS: "-c wal_level=logical -c max_wal_senders=1 -c max_replication_slots=1"
+    command: ["postgres", "-c", "wal_level=logical", "-c", "max_wal_senders=1", "-c", "max_replication_slots=1"]
     ports:
       - "5432:5432"
-    # Healthchecks: Give PostgreSQL and Mongo time to come up before Kafka Connect tries to use them.
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U omura_user"]
       interval: 10s
       retries: 5
+    networks:
+      - omura-network
 
   # 4) MongoDB (for Debezium sink)
   mongodb:
     image: mongo:6
     ports:
       - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
     healthcheck:
-      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
       interval: 10s
       retries: 5
+      start_period: 40s
+    networks:
+      - omura-network
 
-  # 5) Kafka Connect with auto‑deploy of Debezium connectors
+  # 5) Kafka Connect with auto-deploy of Debezium connectors
   connect:
     build:
       context: .
       dockerfile: connect/Dockerfile
     image: my-connect:2.1
     depends_on:
-      - zookeeper
-      - kafka
-      - postgres
-      - mongodb
+      kafka:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
     ports:
       - "8083:8083"
     environment:
@@ -73,38 +91,111 @@ services:
       VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
       KEY_CONVERTER_SCHEMAS_ENABLE: "false"
-      # Allow Debezium to find Postgres JDBC driver
       CLASSPATH: /kafka/connect/jars/*
-    # Command hack: Run in background the default entrypoint with ampersand 
-    # Poll the REST API until it responds 
-    # Then curl both connectors 
-    # Finally foreground Connect so its logs stay in the stdout terminal.
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_REST_PORT: 8083
+    networks:
+      - omura-network
     command: >
       sh -c "
-        # start connect in background
-        /docker-entrypoint.sh connect &
-        # wait for Connect REST to be ready
-        until curl -s http://localhost:8083/connectors ; do
-          echo 'Waiting for Kafka Connect...' && sleep 5
+        # Start connect in background
+        /docker-entrypoint.sh start &
+        CONNECT_PID=$$!
+        
+        # Wait for Connect REST API to be ready
+        echo 'Waiting for Kafka Connect to start...'
+        until curl -s http://localhost:8083/connectors > /dev/null 2>&1; do
+          echo 'Still waiting for Kafka Connect...'
+          sleep 5
         done
-        # POST the two connector configs
-        curl -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors -d @/kafka/connectors/debezium-connector-postgres.json
-        curl -X POST -H 'Content-Type: application/json' http://localhost:8083/connectors -d @/kafka/connectors/mongo-sink-connector.json
-        # bring connect to foreground
-        fg
+        
+        echo 'Kafka Connect is ready. Deploying connectors...'
+        
+        # Deploy PostgreSQL source connector
+        curl -X POST -H 'Content-Type: application/json' \
+          http://localhost:8083/connectors \
+          -d @/kafka/connectors/debezium-connector-postgres.json
+        
+        # Deploy MongoDB sink connector  
+        curl -X POST -H 'Content-Type: application/json' \
+          http://localhost:8083/connectors \
+          -d @/kafka/connectors/mongo-sink-connector.json
+        
+        echo 'Connectors deployed successfully!'
+        
+        # Bring connect process to foreground
+        wait $$CONNECT_PID
       "
 
-  # 6) Your Quarkus application
-  quarkus-app:
-    build: .
-    image: quarkus-app:latest
+  # 6) Python Health Monitoring App
+  python-health-app:
+    build:
+      context: .
+      dockerfile: Dockerfile.pyops
+    image: python-health-app:latest
     depends_on:
       - kafka
+      - postgres
+      - mongodb
     ports:
       - "8080:8080"
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      POSTGRES_URL: jdbc:postgresql://postgres:5432/omura
+      POSTGRES_URL: postgresql://omura_user:omura_pass@postgres:5432/omura
       POSTGRES_USER: omura_user
       POSTGRES_PASSWORD: omura_pass
       MONGO_URI: mongodb://mongodb:27017/omura
+    networks:
+      - omura-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # 7) Quarkus Main Application
+  quarkus-app:
+    build:
+      context: ./quarkus-app
+      dockerfile: ../Dockerfile
+    image: quarkus-app:latest
+    depends_on:
+      - kafka
+      - postgres
+      - mongodb
+      - python-health-app
+    ports:
+      - "8081:8080"
+    environment:
+      # Kafka configuration
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      
+      # Database configurations
+      QUARKUS_DATASOURCE_JDBC_URL: jdbc:postgresql://postgres:5432/omura
+      QUARKUS_DATASOURCE_USERNAME: omura_user
+      QUARKUS_DATASOURCE_PASSWORD: omura_pass
+      
+      # MongoDB configuration
+      QUARKUS_MONGODB_CONNECTION_STRING: mongodb://mongodb:27017/omura
+      
+      # Reactive Messaging Kafka
+      MP_MESSAGING_INCOMING_DATA_EVENTS_BOOTSTRAP_SERVERS: kafka:9092
+      MP_MESSAGING_OUTGOING_PROCESSED_EVENTS_BOOTSTRAP_SERVERS: kafka:9092
+      
+      # Health monitoring service URL
+      HEALTH_SERVICE_URL: http://python-health-app:8080
+    networks:
+      - omura-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/q/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  omura-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  mongo_data:

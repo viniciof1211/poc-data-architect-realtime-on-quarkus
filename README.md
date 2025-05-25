@@ -427,7 +427,17 @@ spec:
 ```
 
 * **deployment.yaml**, **service.yaml**, **ingress.yaml** remain as before, ensure ports for Kafka Connect (8083) are exposed.
+---
+#### Access points:
 
+- Python Health API: http://localhost:8080
+- Quarkus Application: http://localhost:8081
+- Kafka Connect: http://localhost:8083
+- PostgreSQL: localhost:5432
+- MongoDB: localhost:27017
+- Kafka: localhost:9092
+
+The Python app will handle health monitoring and ops tasks, while our Quarkus app will handle the main business logic with Camel routes and reactive messaging.
 ---
 
 ## 🌿 Branch Strategy & CI/CD
