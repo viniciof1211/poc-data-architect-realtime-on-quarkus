@@ -1,49 +1,43 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="
-           http://maven.apache.org/POM/4.0.0 
-           http://maven.apache.org/xsd/maven-4.0.0.xsd">
-
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
+                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+
   <groupId>com.omura</groupId>
   <artifactId>poc-data-architect-realtime-on-quarkus</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  <packaging>jar</packaging>
+  <version>1.0.0</version>
 
-  <!-- ─────────────── 1) PROPERTIES ─────────────── -->
   <properties>
-    <!-- Java / encoding -->
+    <quarkus.version>2.16.2.Final</quarkus.version>
+    <maven.compiler.release>11</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <maven.compiler.source>11</maven.compiler.source>
-    <maven.compiler.target>11</maven.compiler.target>
-    <!-- Quarkus BOM coordinates -->
-    <quarkus.platform.group-id>io.quarkus</quarkus.platform.group-id>
-    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
-    <quarkus.platform.version>2.16.2.Final</quarkus.platform.version>
   </properties>
 
-  <!-- ───────── 2) IMPORT QUARKUS BOM ───────── -->
   <dependencyManagement>
     <dependencies>
       <dependency>
-        <groupId>${quarkus.platform.group-id}</groupId>
-        <artifactId>${quarkus.platform.artifact-id}</artifactId>
-        <version>${quarkus.platform.version}</version>
+        <groupId>io.quarkus</groupId>
+        <artifactId>quarkus-bom</artifactId>
+        <version>${quarkus.version}</version>
         <type>pom</type>
         <scope>import</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>
 
-  <!-- ───────────── 3) DEPENDENCIES ───────────── -->
   <dependencies>
-    <!-- Quarkus core and RESTEasy -->
+    <!-- REST & JSON -->
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy</artifactId>
+      <artifactId>quarkus-resteasy-reactive</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
     </dependency>
 
-    <!-- Reactive Messaging & Kafka support -->
+    <!-- Messaging -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-smallrye-reactive-messaging</artifactId>
@@ -53,38 +47,36 @@
       <artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
     </dependency>
 
-    <!-- Debezium Embedded -->
-    <dependency>
-      <groupId>io.debezium</groupId>
-      <artifactId>debezium-embedded</artifactId>
-      <version>2.1.0.Final</version>
-    </dependency>
-    <!-- MongoDB Driver -->
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongodb-driver-sync</artifactId>
-      <version>4.11.0</version>
-    </dependency>
-    <!-- Postgres JDBC -->
+    <!-- Database & Drivers -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.6.0</version>
     </dependency>
-    <!-- JSON -->
+    <dependency>
+      <groupId>org.mongodb</groupId>
+      <artifactId>mongodb-driver-sync</artifactId>
+      <version>4.11.0</version>
+    </dependency>
     <dependency>
       <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-jackson</artifactId>
+      <artifactId>quarkus-mongodb-client</artifactId>
+    </dependency>
+
+    <!-- Debezium -->
+    <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>debezium-embedded</artifactId>
+      <version>2.1.0.Final</version>
     </dependency>
   </dependencies>
 
-  <!-- ───────────── 4) PLUGINS ───────────── -->
   <build>
     <plugins>
       <plugin>
         <groupId>io.quarkus</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
-        <version>${quarkus.platform.version}</version>
+        <version>${quarkus.version}</version>
         <executions>
           <execution>
             <goals>
@@ -93,15 +85,6 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Ensure you use the 'release' flag instead of -source/target -->
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.11.0</version>
-        <configuration>
-          <release>11</release>
-        </configuration>
-      </plugin>
     </plugins>
   </build>
-
 </project>
