@@ -10,19 +10,30 @@
 
   <properties>
     <quarkus.version>2.16.2.Final</quarkus.version>
+    <camel-quarkus.version>2.16.0</camel-quarkus.version>
     <maven.compiler.release>11</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 
   <dependencyManagement>
     <dependencies>
-      <dependency>
-        <groupId>io.quarkus</groupId>
-        <artifactId>quarkus-bom</artifactId>
-        <version>${quarkus.version}</version>
-        <type>pom</type>
-        <scope>import</scope>
-      </dependency>
+      <!-- Quarkus platform BOM -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-bom</artifactId>
+      <version>${quarkus.version}</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
+
+    <!-- Camel Quarkus BOM (manages all Camel-Quarkus extensions) -->
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-bom</artifactId>
+      <version>${camel-quarkus.version}</version>
+      <type>pom</type>
+      <scope>import</scope>
+    </dependency>
     </dependencies>
   </dependencyManagement>
 
@@ -62,6 +73,36 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-mongodb-client</artifactId>
     </dependency>
+
+    <dependency>
+    <groupId>org.apache.camel.quarkus</groupId>
+    <artifactId>camel-quarkus-main</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>org.apache.camel.quarkus</groupId>
+    <artifactId>camel-quarkus-core</artifactId>
+  </dependency>
+
+  <!-- Example component: timer (and any others you’ll use) -->
+  <dependency>
+    <groupId>org.apache.camel.quarkus</groupId>
+    <artifactId>camel-quarkus-timer</artifactId>
+  </dependency>
+
+   <dependency>
+    <groupId>org.apache.camel.quarkus</groupId>
+    <artifactId>camel-quarkus-kafka</artifactId>
+  </dependency>
+
+   <dependency>
+    <groupId>org.apache.camel.quarkus</groupId>
+    <artifactId>camel-quarkus-http</artifactId>
+  </dependency>
+
+  <dependency>
+    <groupId>org.apache.camel.quarkus</groupId>
+    <artifactId>camel-quarkus-jackson</artifactId>
+  </dependency>
 
     <!-- Debezium -->
     <dependency>
