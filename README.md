@@ -442,6 +442,334 @@ All commit messages follow [Conventional Commits](https://www.conventionalcommit
 
 ## 🛠️ Java & Quarkus Stack Steps
 
+# Real-time Data Pipeline - CDC to ODS Migration
+
+**PostgreSQL → Kafka (Debezium) → Quarkus/Camel → MongoDB**
+
+A complete real-time Change Data Capture (CDC) pipeline that streams data changes from PostgreSQL to MongoDB via Kafka, built with Docker Compose and Kubernetes deployment options.
+
+## 🏗️ Architecture Overview
+
+![Architecture Diagram](./docs/architecture-diagram.png)
+
+- **Source**: PostgreSQL database with `clientes` table
+- **CDC**: Debezium PostgreSQL connector captures changes
+- **Streaming**: Apache Kafka handles event streaming
+- **Processing**: Quarkus application with Apache Camel for transformations
+- **Target**: MongoDB as Operational Data Store (ODS)
+
+## 🚀 Quick Start with Docker Compose
+
+### Prerequisites
+
+- Docker and Docker Compose installed
+- At least 4GB RAM available for containers
+- Ports 2181, 5432, 8080, 8083, 9092, 27017 available
+
+### Step 1: Clone and Start Services
+
+```bash
+# Clone the repository
+git clone <your-repo-url>
+cd <repo-name>
+
+# Start all services
+docker-compose up -d
+
+# Check all containers are running
+docker-compose ps
+```
+
+### Step 2: Wait for Services to Initialize
+
+```bash
+# Monitor logs (this may take 2-3 minutes)
+docker-compose logs -f
+
+# Wait until you see "Kafka Connect started" and connectors are deployed
+```
+
+### Step 3: Verify Each Service
+
+#### ✅ PostgreSQL Database
+```bash
+# Connect to PostgreSQL
+docker exec -it <container-name>_postgres_1 psql -U omura_user -d omura
+
+# Verify clientes table exists
+\dt
+
+# Exit PostgreSQL
+\q
+```
+
+#### ✅ Kafka Cluster
+```bash
+# List Kafka topics
+docker exec -it <container-name>_kafka_1 kafka-topics --bootstrap-server localhost:9092 --list
+
+# Create a test topic (optional)
+docker exec -it <container-name>_kafka_1 kafka-topics --bootstrap-server localhost:9092 --create --topic test-topic --partitions 1 --replication-factor 1
+```
+
+#### ✅ Kafka Connect & Debezium
+```bash
+# Check Connect status
+curl http://localhost:8083/
+
+# List installed connectors
+curl http://localhost:8083/connectors
+
+# Check connector status
+curl http://localhost:8083/connectors/omura-postgres-connector/status
+curl http://localhost:8083/connectors/mongo-sink-connector/status
+```
+
+#### ✅ MongoDB
+```bash
+# Connect to MongoDB
+docker exec -it <container-name>_mongodb_1 mongo omura
+
+# List collections
+show collections
+
+# Exit MongoDB
+exit
+```
+
+#### ✅ Quarkus Application
+```bash
+# Check application health
+curl http://localhost:8080/q/health
+
+# Check readiness
+curl http://localhost:8080/q/health/ready
+
+# Check liveness  
+curl http://localhost:8080/q/health/live
+```
+
+### Step 4: Test the Pipeline
+
+#### Insert Test Data in PostgreSQL
+```bash
+# Connect to PostgreSQL
+docker exec -it <container-name>_postgres_1 psql -U omura_user -d omura
+
+# Insert test records
+INSERT INTO clientes (nombre, email) VALUES 
+('Juan Pérez', 'juan@example.com'),
+('María García', 'maria@example.com'),
+('Carlos López', 'carlos@example.com');
+
+# Verify insertion
+SELECT * FROM clientes;
+
+# Exit
+\q
+```
+
+#### Verify Data in Kafka Topics
+```bash
+# Check CDC topic for changes
+docker exec -it <container-name>_kafka_1 kafka-console-consumer --bootstrap-server localhost:9092 --topic omura-pg.public.clientes --from-beginning --max-messages 3
+```
+
+#### Verify Data in MongoDB
+```bash
+# Connect to MongoDB
+docker exec -it <container-name>_mongodb_1 mongo omura
+
+# Check if data arrived
+db['omura-pg.public.clientes'].find().pretty()
+
+# Count documents
+db['omura-pg.public.clientes'].count()
+
+# Exit
+exit
+```
+
+### Step 5: Test Real-time Updates
+
+```bash
+# Connect to PostgreSQL
+docker exec -it <container-name>_postgres_1 psql -U omura_user -d omura
+
+# Update a record
+UPDATE clientes SET email = 'juan.updated@example.com' WHERE id = 1;
+
+# Delete a record
+DELETE FROM clientes WHERE id = 3;
+
+# Exit
+\q
+```
+
+```bash
+# Verify changes in MongoDB
+docker exec -it <container-name>_mongodb_1 mongo omura
+
+# Check updated data
+db['omura-pg.public.clientes'].find().pretty()
+
+# Exit
+exit
+```
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### Connectors Not Starting
+```bash
+# Check Connect logs
+docker-compose logs connect
+
+# Restart Connect service
+docker-compose restart connect
+```
+
+#### PostgreSQL Connection Issues
+```bash
+# Verify PostgreSQL is accepting connections
+docker exec -it <container-name>_postgres_1 pg_isready -U omura_user
+
+# Check PostgreSQL logs
+docker-compose logs postgres
+```
+
+#### Kafka Topics Not Created
+```bash
+# Manually create topics if needed
+docker exec -it <container-name>_kafka_1 kafka-topics --bootstrap-server localhost:9092 --create --topic omura-pg.public.clientes --partitions 3 --replication-factor 1
+```
+
+### Health Check Commands
+
+```bash
+# Check all container status
+docker-compose ps
+
+# View logs for specific service
+docker-compose logs [service-name]
+
+# Restart specific service
+docker-compose restart [service-name]
+
+# Stop all services
+docker-compose down
+
+# Stop and remove volumes (⚠️ DATA LOSS)
+docker-compose down -v
+```
+
+## ☸️ Kubernetes Deployment
+
+### Prerequisites
+
+- Kubernetes cluster (minikube, kind, or cloud provider)
+- kubectl configured
+- Container images built and available
+
+### Deploy to Kubernetes
+
+```bash
+# Create namespace
+kubectl apply -f k8s/namespace.yaml
+
+# Deploy secrets and config
+kubectl apply -f k8s/secret.yaml
+kubectl apply -f k8s/configmap.yaml
+
+# Deploy infrastructure
+kubectl apply -f k8s/zookeeper-deployment.yaml
+kubectl apply -f k8s/kafka-deployment.yaml
+kubectl apply -f k8s/postgres-deployment.yaml
+kubectl apply -f k8s/mongodb-deployment.yaml
+
+# Deploy Kafka Connect
+kubectl apply -f k8s/kafka-connect-deployment.yaml
+
+# Deploy Quarkus application
+kubectl apply -f k8s/quarkus-deployment.yaml
+
+# Check deployment status
+kubectl get pods -n poc
+kubectl get services -n poc
+```
+
+### Access Services in Kubernetes
+
+```bash
+# Port forward to access services locally
+kubectl port-forward -n poc svc/postgres 5432:5432
+kubectl port-forward -n poc svc/kafka 9092:9092
+kubectl port-forward -n poc svc/mongodb 27017:27017
+kubectl port-forward -n poc svc/quarkus-app 8080:8080
+```
+
+## 📊 Monitoring & Validation
+
+### Key Metrics to Monitor
+
+1. **Kafka Lag**: Check consumer lag for real-time processing
+2. **Database Connections**: Monitor PostgreSQL and MongoDB connections
+3. **Memory Usage**: Ensure containers have sufficient memory
+4. **Error Logs**: Watch for connector and application errors
+
+### Useful Commands
+
+```bash
+# Monitor Kafka consumer lag
+docker exec -it <container-name>_kafka_1 kafka-consumer-groups --bootstrap-server localhost:9092 --describe --group connect-mongo-sink-connector
+
+# Check database sizes
+# PostgreSQL
+docker exec -it <container-name>_postgres_1 psql -U omura_user -d omura -c "SELECT pg_size_pretty(pg_database_size('omura'));"
+
+# MongoDB
+docker exec -it <container-name>_mongodb_1 mongo omura --eval "db.stats()"
+```
+
+## 🔄 Data Flow Validation
+
+The complete data flow should be:
+
+1. **INSERT/UPDATE/DELETE** in PostgreSQL `clientes` table
+2. **Debezium** captures change and sends to Kafka topic `omura-pg.public.clientes`
+3. **Kafka** stores the event reliably
+4. **MongoDB Sink Connector** consumes from Kafka and writes to MongoDB collection
+5. **Quarkus App** can process/transform data in real-time
+6. **Data available** in MongoDB for operational queries
+
+## 📝 Configuration Notes
+
+- **Database**: PostgreSQL with logical replication enabled
+- **Kafka Topics**: Auto-created by Debezium with format `{server-name}.{schema}.{table}`
+- **MongoDB Collections**: Named after Kafka topics
+- **Security**: Basic authentication (enhance for production)
+- **Scaling**: Single instance setup (scale for production)
+
+## 🚨 Production Considerations
+
+- [ ] Enable SSL/TLS for all communications
+- [ ] Set up proper authentication and authorization
+- [ ] Configure persistent volumes for data
+- [ ] Set up monitoring and alerting
+- [ ] Configure backup and disaster recovery
+- [ ] Tune Kafka and database parameters
+- [ ] Implement proper logging strategy
+- [ ] Set resource limits and requests
+
+## 📚 Additional Resources
+
+- [Debezium Documentation](https://debezium.io/documentation/)
+- [Apache Kafka Documentation](https://kafka.apache.org/documentation/)
+- [Quarkus Guides](https://quarkus.io/guides/)
+- [MongoDB Kafka Connector](https://docs.mongodb.com/kafka-connector/)
+
+---
 1. **Compile & Native Image**
 
    ```bash
@@ -485,4 +813,6 @@ All commit messages follow [Conventional Commits](https://www.conventionalcommit
 
 Ready to collaborate! Please review and comment in this repo, and watch as we iterate through features, dev tests, and production releases.
 
-*Vinicio S. Flores - Data Architect & Senior Engineer.*
+**Author**: Vinicio S. Flores  
+**License**: MIT  
+**Project**: OMURA Data Architect and Engineer POC

@@ -52,7 +52,10 @@ services:
 
   # 5) Kafka Connect with auto‑deploy of Debezium connectors
   connect:
-    image: debezium/connect:2.1
+    build:
+      context: .
+      dockerfile: connect/Dockerfile
+    image: my-connect:2.1
     depends_on:
       - zookeeper
       - kafka
@@ -72,10 +75,6 @@ services:
       KEY_CONVERTER_SCHEMAS_ENABLE: "false"
       # Allow Debezium to find Postgres JDBC driver
       CLASSPATH: /kafka/connect/jars/*
-    # Volumes: I Mount the two JSON config files into /kafka/connectors/ inside the Connect container.
-    volumes:
-      - ./k8s/debezium-connector-postgres.json:/kafka/connectors/debezium-connector-postgres.json:ro
-      - ./k8s/mongo-sink-connector.json:/kafka/connectors/mongo-sink-connector.json:ro
     # Command hack: Run in background the default entrypoint with ampersand 
     # Poll the REST API until it responds 
     # Then curl both connectors 
