@@ -6,32 +6,52 @@ This repository contains all artifacts needed to spin up a Proof-of-Concept (POC
 
 ---
 
-## 🚀 Repository Layout
+## Repository Layout
 
 ```
-poc-omura-data-architect-realtime-on-quarkus/
-├── README.md                  # This guide
-├── architecture/              # Diagram exports (draw.io → PNG)
-├── docs/                      # POC specification and design docs
-│   └── poc-specification.md   # Business & technical specs
-├── scripts/                   # Automation scripts
-│   ├── install-k8s.ps1        # PowerShell for Windows
-│   ├── install-k8s.sh         # Bash for macOS/Linux
-│   └── build-and-run.sh       # Local build & deploy helper
-├── docker/                    # Docker assets
-│   ├── Dockerfile             # Quarkus & Python service images
-│   └── docker-compose.yml     # Multi-container local setup
-├── k8s/                       # Kubernetes manifests
-│   ├── namespace.yaml         # Namespace definition
-│   ├── configmap.yaml         # App configuration
-│   ├── secret.yaml            # Sensitive values (base64-encoded)
-│   ├── deployment.yaml        # Pod & Deployment specs
-│   ├── service.yaml           # Service (ClusterIP/LoadBalancer)
-│   └── ingress.yaml           # Ingress rules
-├── charts/                    # (Optional) Helm charts for production
-└── .github/                   # CI/CD workflows
+poc-data-architect-realtime-on-quarkus/
+├── README.md                        # POC overview and instructions
+├── LICENSE                          # MIT license
+├── dir.txt                          # Auto-generated directory listing
+│
+├── docker/                          # Docker assets for Quarkus + services
+│   ├── Dockerfile                   # Builds the Quarkus native image
+│   └── docker-compose.yml           # Local multi-container setup (Kafka, ZK, Quarkus)
+│
+├── k8s/                             # Kubernetes manifests for dev & prod
+│   ├── namespace.yaml               # poc namespace definition
+│   ├── configmap.yaml               # Environment variables (e.g. POSTGRES_URL)
+│   ├── secret.yaml                  # Base64-encoded secrets
+│   ├── deployment.yaml              # Catch-all app deployment (ZK, Kafka Connect, etc.)
+│   ├── service.yaml                 # ClusterIP / LoadBalancer services
+│   ├── ingress.yaml                 # Ingress rules (host/path)
+│   ├── debezium-connector-postgres.json  # Debezium Postgres source config
+│   └── mongo-sink-connector.json    # MongoDB sink connector config
+│
+├── postgres/                        # Postgres setup & init scripts
+│   ├── init/                        # Database initialization scripts
+│   │   ├── schema.sql               # DDL (tables, indexes)
+│   │   └── seed-data.sql            # Sample data load
+│   └── Dockerfile                   # (Optional) Custom Postgres image with init
+│
+├── quarkus-app/                     # The Quarkus microservice
+│   ├── pom.xml                      # Maven build descriptor
+│   ├── src/
+│   │   ├── main/
+│   │   │   ├── java/                # Application code (packages under com.omura…)
+│   │   │   └── resources/           # application.properties, log configs
+│   │   └── test/                    # Unit & integration tests
+│   └── target/                      # Compiled classes & native runner (git-ignored)
+│
+├── scripts/                         # Helper scripts for setup & deploy
+│   ├── install-k8s.sh               # macOS/Linux Minikube install
+│   ├── install-k8s.ps1              # Windows PowerShell Minikube install
+│   └── build-and-run.sh             # Builds images, applies k8s, port-forwards
+│
+└── .github/                         # CI/CD workflows (if still present)
     └── workflows/
-        └── ci-cd-pipeline.yml # GitHub Actions pipeline
+        └── ci-cd-pipeline.yml      # GitHub Actions pipeline
+
 ```
 
 ---
