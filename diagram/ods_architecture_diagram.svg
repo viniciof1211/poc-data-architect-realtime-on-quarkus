@@ -1,0 +1,165 @@
+<svg viewBox="0 0 1200 800" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dbGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4CAF50;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2E7D32;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="kafkaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF9800;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#F57C00;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="appGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#2196F3;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#1565C0;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="k8sGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9C27B0;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#6A1B9A;stop-opacity:1" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="3" dy="3" stdDeviation="2" flood-color="#00000040"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="800" fill="#f8f9fa"/>
+  
+  <!-- Title -->
+  <text x="600" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#333">
+    POC Data Architect - ODS Architecture
+  </text>
+  
+  <!-- Kubernetes Cluster Container -->
+  <rect x="50" y="70" width="1100" height="680" rx="15" fill="none" stroke="#9C27B0" stroke-width="3" stroke-dasharray="10,5" filter="url(#shadow)"/>
+  <text x="70" y="95" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#9C27B0">Kubernetes Cluster (POC Namespace)</text>
+  
+  <!-- Source Systems Layer -->
+  <rect x="80" y="120" width="300" height="200" rx="10" fill="#E8F5E8" stroke="#4CAF50" stroke-width="2" filter="url(#shadow)"/>
+  <text x="230" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#2E7D32">Source Systems</text>
+  
+  <!-- PostgreSQL -->
+  <rect x="100" y="160" width="120" height="80" rx="8" fill="url(#dbGrad)" filter="url(#shadow)"/>
+  <text x="160" y="185" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">PostgreSQL</text>
+  <text x="160" y="200" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">omura DB</text>
+  <text x="160" y="215" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">clientes table</text>
+  <text x="160" y="230" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">Port: 5432</text>
+  
+  <!-- Change Data Capture Layer -->
+  <rect x="450" y="120" width="300" height="200" rx="10" fill="#FFF3E0" stroke="#FF9800" stroke-width="2" filter="url(#shadow)"/>
+  <text x="600" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#F57C00">Change Data Capture</text>
+  
+  <!-- Zookeeper -->
+  <rect x="470" y="160" width="80" height="50" rx="5" fill="url(#kafkaGrad)" filter="url(#shadow)"/>
+  <text x="510" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white">Zookeeper</text>
+  <text x="510" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">:2181</text>
+  
+  <!-- Kafka -->
+  <rect x="570" y="160" width="80" height="50" rx="5" fill="url(#kafkaGrad)" filter="url(#shadow)"/>
+  <text x="610" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white">Kafka</text>
+  <text x="610" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">:9092</text>
+  
+  <!-- Kafka Connect -->
+  <rect x="670" y="160" width="80" height="50" rx="5" fill="url(#kafkaGrad)" filter="url(#shadow)"/>
+  <text x="710" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white">Kafka Connect</text>
+  <text x="710" y="190" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">Debezium</text>
+  <text x="710" y="205" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">:8083</text>
+  
+  <!-- Topics -->
+  <rect x="470" y="230" width="280" height="70" rx="5" fill="#FFE0B2" stroke="#FF9800" stroke-width="1"/>
+  <text x="610" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#E65100">Kafka Topics</text>
+  <text x="520" y="270" font-family="Arial, sans-serif" font-size="10" fill="#E65100">• omura-pg.public.clientes</text>
+  <text x="520" y="285" font-family="Arial, sans-serif" font-size="10" fill="#E65100">• connect-configs, connect-offsets</text>
+  
+  <!-- Processing Layer -->
+  <rect x="820" y="120" width="280" height="200" rx="10" fill="#E3F2FD" stroke="#2196F3" stroke-width="2" filter="url(#shadow)"/>
+  <text x="960" y="145" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#1565C0">Processing Layer</text>
+  
+  <!-- Quarkus App -->
+  <rect x="840" y="160" width="120" height="100" rx="8" fill="url(#appGrad)" filter="url(#shadow)"/>
+  <text x="900" y="180" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">Quarkus App</text>
+  <text x="900" y="195" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">Apache Camel</text>
+  <text x="900" y="210" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">Reactive Messaging</text>
+  <text x="900" y="225" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">REST API</text>
+  <text x="900" y="240" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">Port: 8080</text>
+  <text x="900" y="255" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">Replicas: 3</text>
+  
+  <!-- Target Systems Layer -->
+  <rect x="80" y="400" width="300" height="200" rx="10" fill="#E8F5E8" stroke="#4CAF50" stroke-width="2" filter="url(#shadow)"/>
+  <text x="230" y="425" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#2E7D32">Target Systems (ODS)</text>
+  
+  <!-- MongoDB -->
+  <rect x="100" y="440" width="120" height="80" rx="8" fill="url(#dbGrad)" filter="url(#shadow)"/>
+  <text x="160" y="465" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="white">MongoDB</text>
+  <text x="160" y="480" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">omura DB</text>
+  <text x="160" y="495" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">clientes collection</text>
+  <text x="160" y="510" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="white">Port: 27017</text>
+  
+  <!-- Configuration & Secrets -->
+  <rect x="450" y="400" width="300" height="200" rx="10" fill="#F3E5F5" stroke="#9C27B0" stroke-width="2" filter="url(#shadow)"/>
+  <text x="600" y="425" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#6A1B9A">Configuration</text>
+  
+  <!-- ConfigMap -->
+  <rect x="470" y="440" width="80" height="60" rx="5" fill="url(#k8sGrad)" filter="url(#shadow)"/>
+  <text x="510" y="460" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white">ConfigMap</text>
+  <text x="510" y="475" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">app-config</text>
+  <text x="510" y="490" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">ENV, LOG_LEVEL</text>
+  
+  <!-- Secrets -->
+  <rect x="570" y="440" width="80" height="60" rx="5" fill="url(#k8sGrad)" filter="url(#shadow)"/>
+  <text x="610" y="460" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white">Secrets</text>
+  <text x="610" y="475" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">app-secrets</text>
+  <text x="610" y="490" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">DB_PASSWORD</text>
+  
+  <!-- Service -->
+  <rect x="670" y="440" width="80" height="60" rx="5" fill="url(#k8sGrad)" filter="url(#shadow)"/>
+  <text x="710" y="460" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" font-weight="bold" fill="white">Service</text>
+  <text x="710" y="475" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">app-service</text>
+  <text x="710" y="490" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">Port: 80</text>
+  
+  <!-- External Access -->
+  <rect x="820" y="400" width="280" height="200" rx="10" fill="#FFF8E1" stroke="#FFC107" stroke-width="2" filter="url(#shadow)"/>
+  <text x="960" y="425" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#F57C00">External Access</text>
+  
+  <!-- Ingress -->
+  <rect x="840" y="440" width="120" height="60" rx="8" fill="#FFC107" filter="url(#shadow)"/>
+  <text x="900" y="460" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="white">Ingress</text>
+  <text x="900" y="475" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">app-ingress</text>
+  <text x="900" y="490" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="white">poc.example.com</text>
+  
+  <!-- Docker Compose Alternative -->
+  <rect x="840" y="520" width="240" height="60" rx="5" fill="#FFE0B2" stroke="#FF9800" stroke-width="1"/>
+  <text x="960" y="540" text-anchor="middle" font-family="Arial, sans-serif" font-size="11" font-weight="bold" fill="#E65100">Alternative: Docker Compose</text>
+  <text x="960" y="555" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#E65100">All services on single host</text>
+  <text x="960" y="570" text-anchor="middle" font-family="Arial, sans-serif" font-size="9" fill="#E65100">Auto-connector deployment</text>
+  
+  <!-- Data Flow Arrows -->
+  <!-- PostgreSQL to Kafka Connect -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="10" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#666" />
+    </marker>
+  </defs>
+  
+  <!-- PostgreSQL -> Kafka Connect (CDC) -->
+  <path d="M 220 200 Q 350 180 470 185" stroke="#FF5722" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="345" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#FF5722" font-weight="bold">CDC (Debezium)</text>
+  
+  <!-- Kafka -> Quarkus -->
+  <path d="M 750 185 Q 785 185 840 185" stroke="#2196F3" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="795" y="175" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#2196F3" font-weight="bold">Consume</text>
+  
+  <!-- Quarkus -> MongoDB -->
+  <path d="M 840 220 Q 500 350 220 460" stroke="#4CAF50" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="530" y="340" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#4CAF50" font-weight="bold">Transform & Store</text>
+  
+  <!-- External Access Arrow -->
+  <path d="M 960 440 L 960 350" stroke="#FFC107" stroke-width="3" fill="none" marker-end="url(#arrowhead)"/>
+  <text x="980" y="395" font-family="Arial, sans-serif" font-size="10" fill="#FFC107" font-weight="bold">HTTP/REST</text>
+  
+  <!-- Legend -->
+  <rect x="80" y="650" width="1020" height="80" rx="5" fill="#F5F5F5" stroke="#BDBDBD" stroke-width="1"/>
+  <text x="100" y="670" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#333">Legend:</text>
+  <text x="100" y="690" font-family="Arial, sans-serif" font-size="10" fill="#333">• Real-time data replication from PostgreSQL to MongoDB via Kafka CDC</text>
+  <text x="100" y="705" font-family="Arial, sans-serif" font-size="10" fill="#333">• Quarkus application processes and transforms data using Apache Camel routes</text>
+  <text x="100" y="720" font-family="Arial, sans-serif" font-size="10" fill="#333">• Kubernetes deployment with ConfigMaps, Secrets, Services, and Ingress for production readiness</text>
+</svg>

@@ -54,10 +54,106 @@ poc-data-architect-realtime-on-quarkus/
 
 ```
 
+
+---
+
+
+## ODS Architecture Overview
+![Operational Data Store: Source Systems → ODS → Data Warehouse → Analytics/BI Tools](ods_architecture_diagram.png "Operational Data Store Integration")
+
+### What it is in a nutshell
+
+An ODS is a database designed to integrate data from multiple operational systems to support operational reporting and decision-making. It sits between your transactional systems (like CRM, ERP, etc.) and your data warehouse.
+
+#### Key characteristics
+- Real-time or near real-time data: Unlike traditional data warehouses that are updated in batches, an ODS provides current operational data.
+- Integrated view: Combines data from various source systems into a unified, consistent format.
+- Operational focus: Designed for day-to-day business operations rather than historical analysis.
+- Detailed data: Maintains transaction-level detail rather than summarized data.
+
+#### Common use cases
+
+- Real-time dashboards for operations teams
+- Customer service representatives needing a 360-degree customer view
+- Regulatory reporting that requires current data
+- Operational analytics and monitoring
+
+
+## Data Pipeline Design Overview
+![Architecture Pattern: Real-time Change Data Capture (CDC)](data_pipeline_diagram.png "Near Realtime Sync of Changes from PostgreSQL to MongoDB doc events via Debezium Kafka Connector")
+
+### Architecture Pattern: Real-time Change Data Capture (CDC)
+
+_CDC-to-ODS pipelines in a nutshell! :_
+
+**Data Flow**: PostgreSQL → Kafka (via Debezium) → Quarkus/Camel → MongoDB
+
+## **Key Components Analysis**
+
+**Source Layer (PostgreSQL)**
+- Traditional OLTP database with a `clientes` table
+- CDC-enabled to capture real-time changes without impacting operational performance
+
+**Streaming Layer (Kafka + Debezium)**
+- **Debezium**: Acts as the CDC connector, converting database changes into Kafka events
+- **Kafka**: Event streaming backbone with topic-based data distribution
+- Provides durability, scalability, and decoupling between source and target systems
+
+**Processing Layer (Quarkus/Camel)**
+- **Quarkus**: Cloud-native Java framework for microservices
+- **Apache Camel**: Integration framework for data transformation and routing
+- Handles real-time stream processing and data transformation logic
+
+**Target Layer (MongoDB)**
+- Document-based NoSQL database serving as the ODS
+- Optimized for operational queries and flexible schema evolution
+
+## **Architecture Benefits**
+- **Real-time data availability**: Near-zero latency for operational insights
+- **Loose coupling**: Systems can evolve independently
+- **Scalability**: Event-driven architecture scales horizontally
+- **Fault tolerance**: Kafka provides message durability and replay capabilities
+
+## **Use Case Fit**
+This is a modern, cloud-native approach to building an ODS that prioritizes real-time operational analytics over traditional batch ETL processes. Perfect for customer 360 views, real-time dashboards, and operational decision-making.
+
 ---
 
 ## 🛠️ Local Setup Steps
+Looking at your CDC-to-ODS pipeline, here's the architecture analysis in a nutshell:
 
+## **Architecture Pattern: Real-time Change Data Capture (CDC)**
+
+**Data Flow**: PostgreSQL → Kafka (via Debezium) → Quarkus/Camel → MongoDB
+
+## **Key Components Analysis**
+
+**Source Layer (PostgreSQL)**
+- Traditional OLTP database with a `clientes` table
+- CDC-enabled to capture real-time changes without impacting operational performance
+
+**Streaming Layer (Kafka + Debezium)**
+- **Debezium**: Acts as the CDC connector, converting database changes into Kafka events
+- **Kafka**: Event streaming backbone with topic-based data distribution
+- Provides durability, scalability, and decoupling between source and target systems
+
+**Processing Layer (Quarkus/Camel)**
+- **Quarkus**: Cloud-native Java framework for microservices
+- **Apache Camel**: Integration framework for data transformation and routing
+- Handles real-time stream processing and data transformation logic
+
+**Target Layer (MongoDB)**
+- Document-based NoSQL database serving as the ODS
+- Optimized for operational queries and flexible schema evolution
+
+## **Architecture Benefits**
+- **Real-time data availability**: Near-zero latency for operational insights
+- **Loose coupling**: Systems can evolve independently
+- **Scalability**: Event-driven architecture scales horizontally
+- **Fault tolerance**: Kafka provides message durability and replay capabilities
+
+## **Use Case Fit**
+This is a modern, cloud-native approach to building an ODS that prioritizes real-time operational analytics over traditional batch ETL processes. Perfect for customer 360 views, real-time dashboards, and operational decision-making.
 1. **Clone the repo**
 
    ```bash
