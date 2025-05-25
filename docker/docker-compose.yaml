@@ -97,7 +97,7 @@ services:
 
   # 6) Your Quarkus application
   quarkus-app:
-    build: ./docker
+    build: .
     image: quarkus-app:latest
     depends_on:
       - kafka

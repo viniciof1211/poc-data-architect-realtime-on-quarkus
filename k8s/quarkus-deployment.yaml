@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: quarkus-app
+  namespace: poc
+  labels:
+    app: quarkus-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: quarkus-app
+  template:
+    metadata:
+      labels:
+        app: quarkus-app
+    spec:
+      containers:
+        - name: quarkus
+          image: quarkus-app:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: KAFKA_BOOTSTRAP_SERVERS
+              value: "kafka:9092"
+            - name: POSTGRES_URL
+              value: "jdbc:postgresql://postgres:5432/omura"
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: app-secrets
+                  key: POSTGRES_PASSWORD
+            - name: MONGO_URI
+              value: "mongodb://mongodb:27017/omura"
+          volumeMounts:
+            - name: app-config
+              mountPath: /work/working/application.properties
+              subPath: application.properties
+          readinessProbe:
+            httpGet:
+              path: /q/health/ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /q/health/live
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 10
+      volumes:
+        - name: app-config
+          configMap:
+            name: quarkus-app-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: quarkus-app
+  namespace: poc
+spec:
+  selector:
+    app: quarkus-app
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: quarkus-app-ingress
+  namespace: poc
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: quarkus.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: quarkus-app
+                port:
+                  number: 8080

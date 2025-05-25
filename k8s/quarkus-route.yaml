@@ -1,0 +1,12 @@
+# (optional) k8s/quarkus-route.yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: quarkus-app
+  namespace: poc
+spec:
+  to:
+    kind: Service
+    name: quarkus-app
+  port:
+    targetPort: http
