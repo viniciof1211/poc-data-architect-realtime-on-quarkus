@@ -10,7 +10,6 @@
 
   <properties>
     <quarkus.version>2.16.2.Final</quarkus.version>
-    <camel-quarkus.version>2.16.0</camel-quarkus.version>
     <maven.compiler.release>11</maven.compiler.release>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
@@ -28,9 +27,9 @@
 
     <!-- Camel Quarkus BOM (manages all Camel-Quarkus extensions) -->
     <dependency>
-      <groupId>org.apache.camel.quarkus</groupId>
-      <artifactId>camel-quarkus-bom</artifactId>
-      <version>${camel-quarkus.version}</version>
+      <groupId>io.quarkus.platform</groupId>
+      <artifactId>quarkus-camel-bom</artifactId>
+      <version>${quarkus.version}</version>
       <type>pom</type>
       <scope>import</scope>
     </dependency>
@@ -38,26 +37,6 @@
   </dependencyManagement>
 
   <dependencies>
-    <!-- REST & JSON -->
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-reactive</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
-    </dependency>
-
-    <!-- Messaging -->
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-smallrye-reactive-messaging</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
-    </dependency>
-
     <!-- Database & Drivers -->
     <dependency>
       <groupId>org.postgresql</groupId>
@@ -73,11 +52,6 @@
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-mongodb-client</artifactId>
     </dependency>
-
-    <dependency>
-    <groupId>org.apache.camel.quarkus</groupId>
-    <artifactId>camel-quarkus-main</artifactId>
-  </dependency>
   <dependency>
     <groupId>org.apache.camel.quarkus</groupId>
     <artifactId>camel-quarkus-core</artifactId>
@@ -104,12 +78,46 @@
     <artifactId>camel-quarkus-jackson</artifactId>
   </dependency>
 
-    <!-- Debezium -->
-    <dependency>
-      <groupId>io.debezium</groupId>
-      <artifactId>debezium-embedded</artifactId>
-      <version>2.1.0.Final</version>
-    </dependency>
+  <!-- 1. JAX-RS / RESTEasy Reactive -->
+  <dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-resteasy-reactive</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+  </dependency>
+
+  <!-- 2. MicroProfile Reactive Messaging (and Kafka connector) -->
+  <dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-smallrye-reactive-messaging</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
+  </dependency>
+
+  <!-- 3. Existing DBs / Debezium deps -->
+  <dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <version>42.6.0</version>
+  </dependency>
+  <dependency>
+    <groupId>org.mongodb</groupId>
+    <artifactId>mongodb-driver-sync</artifactId>
+    <version>4.11.0</version>
+  </dependency>
+  <dependency>
+    <groupId>io.quarkus</groupId>
+    <artifactId>quarkus-mongodb-client</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>io.debezium</groupId>
+    <artifactId>debezium-embedded</artifactId>
+    <version>2.1.0.Final</version>
+  </dependency>
   </dependencies>
 
   <build>
