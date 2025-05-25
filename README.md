@@ -59,7 +59,7 @@ poc-data-architect-realtime-on-quarkus/
 
 
 ## ODS Architecture Overview
-![Operational Data Store: Source Systems → ODS → Data Warehouse → Analytics/BI Tools](ods_architecture_diagram.png "Operational Data Store Integration")
+![Operational Data Store: Source Systems → ODS → Data Warehouse → Analytics/BI Tools](./diagram/ods_architecture_diagram.png "Operational Data Store Integration")
 
 ### What it is in a nutshell
 
@@ -80,7 +80,7 @@ An ODS is a database designed to integrate data from multiple operational system
 
 
 ## Data Pipeline Design Overview
-![Architecture Pattern: Real-time Change Data Capture (CDC)](data_pipeline_diagram.png "Near Realtime Sync of Changes from PostgreSQL to MongoDB doc events via Debezium Kafka Connector")
+![Architecture Pattern: Real-time Change Data Capture (CDC)](./diagram/data_pipeline_diagram.png "Near Realtime Sync of Changes from PostgreSQL to MongoDB doc events via Debezium Kafka Connector")
 
 ### Architecture Pattern: Real-time Change Data Capture (CDC)
 
