@@ -2,7 +2,7 @@
 # Under MIT License
 # All Ports: Exposed Kafka (9092), Connect (8083), Postgres (5432), Mongo (27017), Python Health API (8080), Quarkus App (8081)
 
-version: '3.8'
+#version: '3.8'
 services:
   # 1) Zookeeper
   zookeeper:
@@ -43,7 +43,7 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-      - ./postgres/postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./postgres-init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U omura_user"]
       interval: 10s
