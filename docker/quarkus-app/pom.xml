@@ -1,138 +1,126 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 
-                             http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+         xsi:schemaLocation="
+           http://maven.apache.org/POM/4.0.0
+           http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+  <modelVersion>4.0.0</modelVersion>
   <groupId>com.omura</groupId>
   <artifactId>poc-data-architect-realtime-on-quarkus</artifactId>
   <version>1.0.0</version>
+  <packaging>jar</packaging>
 
   <properties>
-    <quarkus.version>2.16.2.Final</quarkus.version>
-    <maven.compiler.release>11</maven.compiler.release>
+    <!-- Quarkus platform version; controls both core and Camel-Quarkus -->
+    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+    <quarkus.platform.version>2.16.12.Final</quarkus.platform.version>
+
+    <!-- Java settings -->
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.release>11</maven.compiler.release>
   </properties>
 
   <dependencyManagement>
     <dependencies>
-      <!-- Quarkus platform BOM -->
-    <dependency>
-      <groupId>io.quarkus</groupId>
-      <artifactId>quarkus-bom</artifactId>
-      <version>${quarkus.version}</version>
-      <type>pom</type>
-      <scope>import</scope>
-    </dependency>
-
-    <!-- Camel Quarkus BOM (manages all Camel-Quarkus extensions) -->
-    <dependency>
-      <groupId>io.quarkus.platform</groupId>
-      <artifactId>quarkus-camel-bom</artifactId>
-      <version>${quarkus.version}</version>
-      <type>pom</type>
-      <scope>import</scope>
-    </dependency>
+      <!-- 1) Core Quarkus BOM -->
+      <dependency>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>${quarkus.platform.artifact-id}</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+      <!-- 2) Quarkus‑provided Camel BOM - CORRECTED -->
+      <dependency>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-camel-bom</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
 
   <dependencies>
-    <!-- Database & Drivers -->
+    <!-- JDBC & Drivers -->
     <dependency>
       <groupId>org.postgresql</groupId>
       <artifactId>postgresql</artifactId>
       <version>42.6.0</version>
     </dependency>
-    <dependency>
-      <groupId>org.mongodb</groupId>
-      <artifactId>mongodb-driver-sync</artifactId>
-      <version>4.11.0</version>
-    </dependency>
+    <!-- MongoDB client -->
     <dependency>
       <groupId>io.quarkus</groupId>
       <artifactId>quarkus-mongodb-client</artifactId>
     </dependency>
-  <dependency>
-    <groupId>org.apache.camel.quarkus</groupId>
-    <artifactId>camel-quarkus-core</artifactId>
-  </dependency>
+    <!-- Debezium Embedded -->
+    <dependency>
+      <groupId>io.debezium</groupId>
+      <artifactId>debezium-embedded</artifactId>
+      <version>2.1.0.Final</version>
+    </dependency>
 
-  <!-- Example component: timer (and any others you’ll use) -->
-  <dependency>
-    <groupId>org.apache.camel.quarkus</groupId>
-    <artifactId>camel-quarkus-timer</artifactId>
-  </dependency>
+    <!-- RESTEasy Reactive + Jackson -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+    </dependency>
 
-   <dependency>
-    <groupId>org.apache.camel.quarkus</groupId>
-    <artifactId>camel-quarkus-kafka</artifactId>
-  </dependency>
+    <!-- Reactive Messaging Kafka -->
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
+    </dependency>
 
-   <dependency>
-    <groupId>org.apache.camel.quarkus</groupId>
-    <artifactId>camel-quarkus-http</artifactId>
-  </dependency>
-
-  <dependency>
-    <groupId>org.apache.camel.quarkus</groupId>
-    <artifactId>camel-quarkus-jackson</artifactId>
-  </dependency>
-
-  <!-- 1. JAX-RS / RESTEasy Reactive -->
-  <dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-resteasy-reactive</artifactId>
-  </dependency>
-  <dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
-  </dependency>
-
-  <!-- 2. MicroProfile Reactive Messaging (and Kafka connector) -->
-  <dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-smallrye-reactive-messaging</artifactId>
-  </dependency>
-  <dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-smallrye-reactive-messaging-kafka</artifactId>
-  </dependency>
-
-  <!-- 3. Existing DBs / Debezium deps -->
-  <dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-    <version>42.6.0</version>
-  </dependency>
-  <dependency>
-    <groupId>org.mongodb</groupId>
-    <artifactId>mongodb-driver-sync</artifactId>
-    <version>4.11.0</version>
-  </dependency>
-  <dependency>
-    <groupId>io.quarkus</groupId>
-    <artifactId>quarkus-mongodb-client</artifactId>
-  </dependency>
-  <dependency>
-    <groupId>io.debezium</groupId>
-    <artifactId>debezium-embedded</artifactId>
-    <version>2.1.0.Final</version>
-  </dependency>
+    <!-- Camel‑Quarkus Extensions (versions from quarkus-camel-bom) -->
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-core</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-timer</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-kafka</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-http</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.camel.quarkus</groupId>
+      <artifactId>camel-quarkus-mongodb</artifactId>
+    </dependency>
   </dependencies>
 
   <build>
     <plugins>
+      <!-- Quarkus Maven plugin -->
       <plugin>
-        <groupId>io.quarkus</groupId>
+        <groupId>${quarkus.platform.group-id}</groupId>
         <artifactId>quarkus-maven-plugin</artifactId>
-        <version>${quarkus.version}</version>
+        <version>${quarkus.platform.version}</version>
         <executions>
           <execution>
-            <goals>
-              <goal>build</goal>
-            </goals>
+            <goals><goal>build</goal></goals>
           </execution>
         </executions>
+      </plugin>
+      <!-- Compiler plugin -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>3.11.0</version>
+        <configuration>
+          <release>${maven.compiler.release}</release>
+        </configuration>
       </plugin>
     </plugins>
   </build>
